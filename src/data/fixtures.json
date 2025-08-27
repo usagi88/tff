@@ -1,0 +1,86 @@
+{
+  "week1": [
+    {
+      "home": "Time will Tel (1XI)",
+      "away": "Hugo First (1XI)"
+    },
+    {
+      "home": "What's the Wirtz (1XI)",
+      "away": "Lazio FC (1XI)"
+    },
+    {
+      "home": "MOBLANDERSON (1XI)",
+      "away": "Porro Ball Defending (1XI)"
+    },
+    {
+      "home": "World Club Chumpions (1XI)",
+      "away": "Middle Earth FC (1XI)"
+    },
+    {
+      "home": "Pecorino's (1XI)",
+      "away": "Chicken Cunha (1XI)"
+    },
+    {
+      "home": "Jimmy's Jokers (1XI)",
+      "away": "1XI Smoke AI"
+    }
+  ],
+  "week2": [
+    {
+      "home": "Time will Tel (1XI)",
+      "away": "What's the Wirtz (1XI)"
+    },
+    {
+      "home": "Hugo First (1XI)",
+      "away": "MOBLANDERSON (1XI)"
+    },
+    {
+      "home": "Lazio FC (1XI)",
+      "away": "World Club Chumpions (1XI)"
+    },
+    {
+      "home": "Porro Ball Defending (1XI)",
+      "away": "Chicken Cunha (1XI)"
+    },
+    {
+      "home": "Middle Earth FC (1XI)",
+      "away": "Jimmy's Jokers (1XI)"
+    },
+    {
+      "home": "Pecorino's (1XI)",
+      "away": "Always the Wright One (1XI)"
+    },
+    {
+      "bye": "1XI Smoke AI"
+    }
+  ],
+  "week3": [
+    {
+      "home": "What's the Wirtz (1XI)",
+      "away": "Hugo First (1XI)"
+    },
+    {
+      "home": "MOBLANDERSON (1XI)",
+      "away": "Lazio FC (1XI)"
+    },
+    {
+      "home": "World Club Chumpions (1XI)",
+      "away": "Porro Ball Defending (1XI)"
+    },
+    {
+      "home": "Chicken Cunha (1XI)",
+      "away": "Middle Earth FC (1XI)"
+    },
+    {
+      "home": "1XI Smoke AI",
+      "away": "Pecorino's (1XI)"
+    },
+    {
+      "home": "Always the Wright One (1XI)",
+      "away": "Time will Tel (1XI)"
+    },
+    {
+      "bye": "Jimmy's Jokers (1XI)"
+    }
+  ]
+}
