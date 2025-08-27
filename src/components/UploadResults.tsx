@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useOCR } from '../utils/useOCR';
 import resultsData from '../data/results.json';
-import { supabase } from '../utils/supabaseClient'; // (optional for later)
 
 export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
   const { extractText, loading, error } = useOCR();
@@ -18,7 +17,7 @@ export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
     const matchRegex = /([A-Za-z'() .&]+?)\s+(\d+)\s*[-:]\s*(\d+)\s+([A-Za-z'() .&]+)/g;
 
     const weekResults: any[] = [];
-    let m;
+    let m: RegExpExecArray | null;
     while ((m = matchRegex.exec(text)) !== null) {
       weekResults.push({
         home: m[1].trim(),
@@ -33,13 +32,11 @@ export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
       return;
     }
 
-    // For now: save to localStorage
+    // For trial: save to localStorage (shared DB comes later)
     const updated = { ...(resultsData as any), [`week${week}`]: weekResults };
     localStorage.setItem('tff_results', JSON.stringify(updated));
     alert(`✅ Week ${week} results uploaded!`);
     onUpdate();
-
-    // (Later we’ll push to Supabase here instead of localStorage)
   };
 
   return (
