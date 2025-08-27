@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useOCR } from '../utils/useOCR';
 import resultsData from '../data/results.json';
+import { supabase } from '../utils/supabaseClient'; // (optional for later)
 
 export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
   const { extractText, loading, error } = useOCR();
@@ -13,7 +14,7 @@ export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
     const text = await extractText(file);
     if (!text) return;
 
-    // Try to capture lines like: Team A 58 - 46 Team B  (hyphen or colon allowed)
+    // Regex like: Team A 58 - 46 Team B
     const matchRegex = /([A-Za-z'() .&]+?)\s+(\d+)\s*[-:]\s*(\d+)\s+([A-Za-z'() .&]+)/g;
 
     const weekResults: any[] = [];
@@ -32,10 +33,13 @@ export default function UploadResults({ onUpdate }: { onUpdate: () => void }) {
       return;
     }
 
-    const updated = { ...(resultsData as any), [\`week${week}\`]: weekResults };
+    // For now: save to localStorage
+    const updated = { ...(resultsData as any), [`week${week}`]: weekResults };
     localStorage.setItem('tff_results', JSON.stringify(updated));
     alert(`✅ Week ${week} results uploaded!`);
     onUpdate();
+
+    // (Later we’ll push to Supabase here instead of localStorage)
   };
 
   return (
