@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Trophy, Users, Globe, Skull, TrendingUp, Award, FileText, Target, Copy, Share2 } from 'lucide-react';
+import { Trophy, Users, TrendingUp, Award, FileText, Target, Copy, Share2 } from 'lucide-react';
 import teams from '../data/teams.json';
 import fixtures from '../data/fixtures.json';
 import resultsStatic from '../data/results.json';
 import UploadResults from './UploadResults';
 
-type Match = { home: string; away: string; homeScore?: number; awayScore?: number; bye?: string };
+type Match = { home?: string; away?: string; homeScore?: number; awayScore?: number; bye?: string };
 
 export default function TFFPortal() {
   const [activeTab, setActiveTab] = useState<'dashboard'|'chumpions'|'overall'|'weekly'|'fixtures'|'roll'>('dashboard');
@@ -15,12 +15,12 @@ export default function TFFPortal() {
 
   // Merge results from localStorage (OCR uploads) with static JSON
   const results = useMemo(() => {
-    const fromLS = localStorage.getItem('tff_results');
+    const fromLS = typeof window !== 'undefined' ? localStorage.getItem('tff_results') : null;
     if (fromLS) return JSON.parse(fromLS);
     return resultsStatic;
   }, [refreshKey]);
 
-  // standings computed from results (1XI only for Chumpions view)
+  // Chumpions standings (1XI only)
   type Standing = { team: string; played: number; won: number; drawn: number; lost: number; pf: number; pa: number; pts: number };
   const chumpionsTeamNames = new Set(teams.map(t => t.team));
 
@@ -29,14 +29,18 @@ export default function TFFPortal() {
     Object.keys(results).forEach(k => {
       if (!k.startsWith('week')) return;
       (results[k] as Match[]).forEach((m: Match) => {
-        if ((m as any).bye) return;
-        const involved = [m.home, m.away].filter(Boolean) as string[];
-        involved.forEach(team => {
+        if (m.bye) return;
+        if (!m.home || !m.away) return;
+
+        // seed rows if needed
+        [m.home, m.away].forEach(team => {
           if (!chumpionsTeamNames.has(team)) return;
           if (!table[team]) table[team] = { team, played: 0, won: 0, drawn: 0, lost: 0, pf: 0, pa: 0, pts: 0 };
         });
+
         if (chumpionsTeamNames.has(m.home) && chumpionsTeamNames.has(m.away)) {
-          const hs = m.homeScore ?? 0, as = m.awayScore ?? 0;
+          const hs = m.homeScore ?? 0;
+          const as = m.awayScore ?? 0;
           table[m.home].played++; table[m.away].played++;
           table[m.home].pf += hs; table[m.home].pa += as;
           table[m.away].pf += as; table[m.away].pa += hs;
@@ -46,35 +50,40 @@ export default function TFFPortal() {
         }
       });
     });
-    return Object.values(table).sort((a,b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
+    return Object.values(table).sort(
+      (a,b) => b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf
+    );
   }, [results]);
 
-  // overall standings (1XI + 2XI) by cumulative season points from results (sum pf for each team when it appears)
+  // Overall standings (1XI + 2XI) by season points (sum of all appearances)
   type Overall = { team: string; points: number };
   const overallStandings: Overall[] = useMemo(() => {
     const agg: Record<string, number> = {};
     Object.keys(results).forEach(k => {
       if (!k.startsWith('week')) return;
       (results[k] as Match[]).forEach((m: Match) => {
-        if ((m as any).bye) return;
-        if (typeof m.homeScore === 'number') agg[m.home] = (agg[m.home] || 0) + m.homeScore;
-        if (typeof m.awayScore === 'number') agg[m.away] = (agg[m.away] || 0) + m.awayScore;
+        if (m.bye) return;
+        if (m.home && typeof m.homeScore === 'number') agg[m.home] = (agg[m.home] || 0) + m.homeScore;
+        if (m.away && typeof m.awayScore === 'number') agg[m.away] = (agg[m.away] || 0) + m.awayScore;
       });
     });
     return Object.entries(agg).map(([team, points]) => ({ team, points })).sort((a,b) => b.points - a.points);
   }, [results]);
 
-  // dashboard highlights
+  // Dashboard highlights
   const overallLeader = overallStandings[0]?.team ?? '—';
   const chumpionsLeader = chumpionsStandings[0]?.team ?? '—';
 
-  // fixtures helpers
-  const weekKeys = Object.keys(fixtures).filter(k => k.startsWith('week')).map(k => Number(k.replace('week',''))).sort((a,b)=>a-b);
+  // Fixtures helpers
+  const weekKeys = Object.keys(fixtures).filter(k => k.startsWith('week'))
+    .map(k => Number(k.replace('week',''))).sort((a,b)=>a-b);
+
   const getResultFor = (w: number, home: string, away: string) => {
     const wk = results[`week${w}`] as Match[] || [];
     const hit = wk.find(m => m.home === home && m.away === away);
     return hit && typeof hit.homeScore === 'number' ? `${hit.homeScore}–${hit.awayScore}` : '';
   };
+
   const buildShareText = (w: number) => {
     const list = (fixtures as any)[`week${w}`] || [];
     const lines: string[] = [];
@@ -88,11 +97,14 @@ export default function TFFPortal() {
     });
     return lines.join('\n');
   };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(buildShareText(fixtureWeek));
       setCopied('copied'); setTimeout(()=>setCopied(null),1600);
-    } catch { setCopied('error'); setTimeout(()=>setCopied(null),1600); }
+    } catch {
+      setCopied('error'); setTimeout(()=>setCopied(null),1600);
+    }
   };
   const whatsappHref = () => `https://wa.me/?text=${encodeURIComponent(buildShareText(fixtureWeek))}`;
 
@@ -114,11 +126,14 @@ export default function TFFPortal() {
               { id: 'fixtures', label: 'Fixtures', icon: Target },
               { id: 'roll', label: 'Roll of Honour', icon: Award },
             ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
                 className={
                   'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ' +
                   (activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
-                }>
+                }
+              >
                 <tab.icon size={18} /> {tab.label}
               </button>
             ))}
@@ -212,16 +227,35 @@ export default function TFFPortal() {
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-3"><Target className="text-green-600" size={28} /> Fixtures</h2>
             <div className="flex items-center gap-3 mb-4">
               <label className="text-sm font-medium text-gray-600">Week:</label>
-              <select value={fixtureWeek} onChange={e=>setFixtureWeek(parseInt(e.target.value))} className="border rounded-md px-3 py-2 text-sm">
+              <select
+                value={fixtureWeek}
+                onChange={e=>setFixtureWeek(parseInt(e.target.value))}
+                className="border rounded-md px-3 py-2 text-sm"
+              >
                 {weekKeys.map(w => <option key={w} value={w}>Week {w}</option>)}
               </select>
-              <button onClick={handleCopy} className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-800 text-white text-sm hover:bg-gray-700">
-                <Copy size={16}/> {copied==='copied'?'Copied!':'Copy'}
+
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(buildShareText(fixtureWeek));
+                    setCopied('copied'); setTimeout(()=>setCopied(null),1600);
+                  } catch { setCopied('error'); setTimeout(()=>setCopied(null),1600); }
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-800 text-white text-sm hover:bg-gray-700"
+              >
+                <Copy size={16}/> {copied==='copied' ? 'Copied!' : 'Copy'}
               </button>
-              <a href={whatsappHref()} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700">
+
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(buildShareText(fixtureWeek))}`}
+                target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700"
+              >
                 <Share2 size={16}/> Share to WhatsApp
               </a>
             </div>
+
             <div className="space-y-2">
               {(fixtures as any)[`week${fixtureWeek}`].map((f: any, i: number) => f.bye ? (
                 <div key={i} className="p-3 rounded-lg bg-blue-50 border-l-4 border-blue-400"><strong>BYE:</strong> {f.bye}</div>
@@ -253,3 +287,4 @@ export default function TFFPortal() {
     </div>
   );
 }
+
