@@ -1,57 +1,54 @@
 [
   {
-    "id": 1,
     "manager": "Chris Wright",
-    "team": "What's the Wirtz (1XI)"
+    "team": "What's the Wirtz that could happen (1XI)"
   },
   {
-    "id": 2,
     "manager": "Matt Osborne",
     "team": "Time will Tel (1XI)"
   },
   {
-    "id": 3,
-    "manager": "Chris Parker",
-    "team": "World Club Chumpions (1XI)"
+    "manager": "Graeme Summers",
+    "team": "Lazio FC (1XI)"
   },
   {
-    "id": 4,
-    "manager": "Nick Wright",
-    "team": "Pecorino's (1XI)"
-  },
-  {
-    "id": 5,
     "manager": "James Anderson",
     "team": "MOBLANDERSON (1XI)"
   },
   {
-    "id": 6,
     "manager": "Tom Sumpster",
     "team": "Porro Ball Defending (1XI)"
   },
   {
-    "id": 7,
-    "manager": "James Allard",
-    "team": "Jimmy's Jokers (1XI)"
+    "manager": "Chris Parker",
+    "team": "World Club Chumpions (1XI)"
   },
   {
-    "id": 8,
-    "manager": "Richard Pipes",
-    "team": "1XI Smoke AI"
-  },
-  {
-    "id": 9,
-    "manager": "Adam Wright",
-    "team": "Always the Wright One (1XI)"
-  },
-  {
-    "id": 10,
     "manager": "Paul Clarke",
     "team": "Middle Earth FC (1XI)"
   },
   {
-    "id": 11,
+    "manager": "Nick Wright",
+    "team": "Pecorino\u2019s (1XI)"
+  },
+  {
+    "manager": "James Allard",
+    "team": "Jimmy's Jokers (1XI)"
+  },
+  {
+    "manager": "Richard Pipes",
+    "team": "Smoke AI (1XI)"
+  },
+  {
+    "manager": "Adam Wright",
+    "team": "Always the Wright One (1XI)"
+  },
+  {
     "manager": "Matthew Wright",
     "team": "Hugo First (1XI)"
+  },
+  {
+    "manager": "Ben Prade",
+    "team": "Chicken Cunha (1XI)"
   }
 ]
