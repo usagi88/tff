@@ -27,35 +27,65 @@ export default function TFFPortal() {
 
   const chumpionsTeamNames = new Set((teams as any[]).map(t => t.team));
 
-  const chumpionsStandings: Standing[] = useMemo(() => {
-    const table: Record<string, Standing> = {};
-    const byePoint = 1;
-    for (let w = 1; w <= currentWeek; w++) {
-      const wk = (results as any)[`week${w}`] as Match[] || [];
-      wk.forEach((m: Match) => {
-        if (m.bye) {
-          if (!table[m.bye]) table[m.bye] = { team: m.bye, played: 0, won: 0, drawn: 0, lost: 0, pf: 0, pa: 0, pts: 0 };
-          table[m.bye].pts += byePoint;
-          return;
-        }
-        if (!m.home || !m.away) return;
-        if (!chumpionsTeamNames.has(m.home) || !chumpionsTeamNames.has(m.away)) return;
-        [m.home, m.away].forEach(t => { if (!table[t]) table[t] = { team:t, played:0, won:0, drawn:0, lost:0, pf:0, pa:0, pts:0 } });
-        const hs = m.homeScore ?? 0, as = m.awayScore ?? 0;
-        table[m.home].played++; table[m.away].played++;
-        table[m.home].pf += hs; table[m.home].pa += as;
-        table[m.away].pf += as; table[m.away].pa += hs;
-        if (hs > as) { table[m.home].won++; table[m.home].pts += 3; table[m.away].lost++; }
-        else if (hs < as) { table[m.away].won++; table[m.away].pts += 3; table[m.home].lost++; }
-        else { table[m.home].drawn++; table[m.away].drawn++; table[m.home].pts++; table[m.away].pts++; }
+// ---------- Chumpions standings (1XI only; BYE = +1pt) ----------
+type Standing = {
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  pf: number;
+  pa: number;
+  pts: number;
+};
+
+const chumpionsTeamNames = new Set((teams as any[]).map(t => t.team));
+
+const chumpionsStandings: Standing[] = useMemo(() => {
+  const table: Record<string, Standing> = {};
+  const byePoint = 1;
+
+  for (let w = 1; w <= currentWeek; w++) {
+    const wk = (results as any)[`week${w}`] as Match[] | undefined;
+    (wk ?? []).forEach((m: Match) => {
+      if (m.bye) {
+        if (!table[m.bye]) table[m.bye] = { team: m.bye, played: 0, won: 0, drawn: 0, lost: 0, pf: 0, pa: 0, pts: 0 };
+        table[m.bye].pts += byePoint;
+        return;
+      }
+      if (!m.home || !m.away) return;
+      if (!chumpionsTeamNames.has(m.home) || !chumpionsTeamNames.has(m.away)) return;
+
+      [m.home, m.away].forEach(t => {
+        if (!table[t]) table[t] = { team: t, played: 0, won: 0, drawn: 0, lost: 0, pf: 0, pa: 0, pts: 0 };
       });
-    }
-    const arr = Object.values(table) as Standing[];
-    arr.sort((a: Standing, b: Standing) =>
-      b.pts - a.pts || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf
-    );
-    return arr;
-  }, [results, currentWeek]);
+
+      const hs = m.homeScore ?? 0;
+      const as = m.awayScore ?? 0;
+
+      table[m.home].played++; table[m.away].played++;
+      table[m.home].pf += hs;  table[m.home].pa += as;
+      table[m.away].pf += as;  table[m.away].pa += hs;
+
+      if (hs > as) { table[m.home].won++; table[m.home].pts += 3; table[m.away].lost++; }
+      else if (hs < as) { table[m.away].won++; table[m.away].pts += 3; table[m.home].lost++; }
+      else { table[m.home].drawn++; table[m.away].drawn++; table[m.home].pts++; table[m.away].pts++; }
+    });
+  }
+
+  const arr = Object.values(table) as Standing[];
+
+  const cmpStanding = (a: Standing, b: Standing): number => {
+    if (b.pts !== a.pts) return b.pts - a.pts;                // points
+    const gdA = a.pf - a.pa, gdB = b.pf - b.pa;
+    if (gdB !== gdA) return gdB - gdA;                        // goal diff (points for - against)
+    return b.pf - a.pf;                                       // points for
+  };
+
+  arr.sort(cmpStanding);
+  return arr;
+}, [results, currentWeek]);
+
 
   const overallByWeek: Record<number, OverallRow[]> = useMemo(() => {
     const out: Record<number, Record<string, number>> = {};
